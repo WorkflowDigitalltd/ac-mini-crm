@@ -1,0 +1,51 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: ac123456789
+      POSTGRES_DB: accrm_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "admin"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+  
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: always
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=db;Port=5432;Database=accrm_db;Username=admin;Password=ac123456789
+    ports:
+      - "5000:5000"
+    depends_on:
+      db:
+        condition: service_healthy
+    # We don't mount the entire backend directory as it can cause issues with the build
+    # Instead, we'll rebuild the container when changes are made
+  
+  frontend:
+    build: ./frontend
+    restart: always
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - REACT_APP_API_URL=http://localhost:5000/api
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+
+volumes:
+  postgres-data: {}
