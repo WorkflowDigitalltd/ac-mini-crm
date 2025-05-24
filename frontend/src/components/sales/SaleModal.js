@@ -1,8 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import {
   Dialog, DialogTitle, DialogContent, DialogActions,
-  Button, TextField, Grid, Typography, Alert, MenuItem, Select, FormControl, InputLabel, FormHelperText
+  Button, TextField, Grid, Typography, Alert, MenuItem, Select, FormControl, InputLabel, FormHelperText,
+  Box, Divider, Paper
 } from '@mui/material';
+import {
+  ShoppingCart, Person, Inventory, CalendarToday, AttachMoney, Add, Edit,
+  Save, Cancel, LocalOffer
+} from '@mui/icons-material';
 import { createSale, updateSale, getProduct } from '../../services/api';
 import { formatCurrency } from '../../utils/validation';
 
@@ -143,109 +148,175 @@ const SaleModal = ({ open, onClose, sale, customers, products }) => {
   };
 
   return (
-    <Dialog open={open} onClose={() => onClose(false)} maxWidth="sm" fullWidth>
-      <DialogTitle>
-        {sale ? 'Edit Sale' : 'Add New Sale'}
+    <Dialog 
+      open={open} 
+      onClose={() => onClose(false)} 
+      maxWidth="md" 
+      fullWidth
+      PaperProps={{
+        sx: { borderRadius: 2, overflow: 'hidden' }
+      }}
+    >
+      <DialogTitle 
+        sx={{ 
+          bgcolor: 'primary.main', 
+          color: 'white',
+          py: 2.5,
+          px: 3
+        }}
+      >
+        <Typography variant="h6" sx={{ fontWeight: 'bold', display: 'flex', alignItems: 'center' }}>
+          {sale ? <Edit sx={{ mr: 1.5 }} /> : <Add sx={{ mr: 1.5 }} />}
+          {sale ? 'Edit Sale' : 'Add New Sale'}
+        </Typography>
       </DialogTitle>
-      <DialogContent>
+
+      <DialogContent sx={{ p: 3 }}>
         {submitError && (
-          <Alert severity="error" sx={{ mb: 2 }}>
+          <Alert severity="error" sx={{ mb: 3 }}>
             {submitError}
           </Alert>
         )}
-        <form onSubmit={handleSubmit}>
-          <Grid container spacing={2} sx={{ mt: 1 }}>
-            <Grid item xs={12}>
-              <FormControl fullWidth error={!!errors.customerId}>
-                <InputLabel id="customer-label">Customer</InputLabel>
-                <Select
-                  labelId="customer-label"
-                  name="customerId"
-                  value={formData.customerId}
+
+        <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1 }}>
+          <Paper elevation={1} sx={{ p: 3, mb: 3, bgcolor: 'background.paper', borderRadius: 1 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, pb: 1, borderBottom: '1px solid #eee' }}>
+              <ShoppingCart sx={{ mr: 1.5, color: 'primary.main' }} />
+              <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                Sale Information
+              </Typography>
+            </Box>
+            
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth error={!!errors.customerId} disabled={loading}>
+                  <InputLabel id="customer-label">Customer *</InputLabel>
+                  <Select
+                    labelId="customer-label"
+                    name="customerId"
+                    value={formData.customerId}
+                    onChange={handleChange}
+                    label="Customer *"
+                    required
+                    size="medium"
+                    startAdornment={<Person sx={{ color: 'text.secondary', mr: 1 }} fontSize="small" />}
+                  >
+                    <MenuItem value=""><em>Select a customer</em></MenuItem>
+                    {customers.map(customer => (
+                      <MenuItem key={customer.id} value={customer.id}>
+                        {customer.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                  <FormHelperText>{errors.customerId || 'Select the customer making the purchase'}</FormHelperText>
+                </FormControl>
+              </Grid>
+              
+              <Grid item xs={12} md={6}>
+                <FormControl fullWidth error={!!errors.productId} disabled={loading}>
+                  <InputLabel id="product-label">Product/Service *</InputLabel>
+                  <Select
+                    labelId="product-label"
+                    name="productId"
+                    value={formData.productId}
+                    onChange={handleChange}
+                    label="Product/Service *"
+                    required
+                    size="medium"
+                    startAdornment={<Inventory sx={{ color: 'text.secondary', mr: 1 }} fontSize="small" />}
+                  >
+                    <MenuItem value=""><em>Select a product/service</em></MenuItem>
+                    {products.map(product => (
+                      <MenuItem key={product.id} value={product.id}>
+                        {product.name} - {formatCurrency(product.price)}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                  <FormHelperText>{errors.productId || 'Select the product or service being sold'}</FormHelperText>
+                </FormControl>
+              </Grid>
+            </Grid>
+          </Paper>
+          
+          <Paper elevation={1} sx={{ p: 3, mb: 3, bgcolor: 'background.paper', borderRadius: 1 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, pb: 1, borderBottom: '1px solid #eee' }}>
+              <LocalOffer sx={{ mr: 1.5, color: 'primary.main' }} />
+              <Typography variant="subtitle1" sx={{ fontWeight: 'bold' }}>
+                Order Details
+              </Typography>
+            </Box>
+            
+            <Grid container spacing={3}>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Quantity *"
+                  name="quantity"
+                  type="number"
+                  inputProps={{ min: '1', step: '1' }}
+                  value={formData.quantity}
                   onChange={handleChange}
-                  label="Customer"
+                  error={!!errors.quantity}
+                  helperText={errors.quantity || 'Number of items'}
                   disabled={loading}
                   required
-                >
-                  <MenuItem value=""><em>Select a customer</em></MenuItem>
-                  {customers.map(customer => (
-                    <MenuItem key={customer.id} value={customer.id}>
-                      {customer.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-                {errors.customerId && <FormHelperText>{errors.customerId}</FormHelperText>}
-              </FormControl>
-            </Grid>
-            <Grid item xs={12}>
-              <FormControl fullWidth error={!!errors.productId}>
-                <InputLabel id="product-label">Product/Service</InputLabel>
-                <Select
-                  labelId="product-label"
-                  name="productId"
-                  value={formData.productId}
+                  size="medium"
+                  InputProps={{
+                    startAdornment: <LocalOffer sx={{ color: 'text.secondary', mr: 1 }} fontSize="small" />
+                  }}
+                />
+              </Grid>
+              
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Sale Date *"
+                  name="saleDate"
+                  type="date"
+                  value={formData.saleDate}
                   onChange={handleChange}
-                  label="Product/Service"
+                  error={!!errors.saleDate}
+                  helperText={errors.saleDate || 'Date of the sale'}
                   disabled={loading}
+                  InputLabelProps={{ shrink: true }}
                   required
-                >
-                  <MenuItem value=""><em>Select a product/service</em></MenuItem>
-                  {products.map(product => (
-                    <MenuItem key={product.id} value={product.id}>
-                      {product.name} - {formatCurrency(product.price)}
-                    </MenuItem>
-                  ))}
-                </Select>
-                {errors.productId && <FormHelperText>{errors.productId}</FormHelperText>}
-              </FormControl>
+                  size="medium"
+                  InputProps={{
+                    startAdornment: <CalendarToday sx={{ color: 'text.secondary', mr: 1 }} fontSize="small" />
+                  }}
+                />
+              </Grid>
+              
+              <Grid item xs={12}>
+                <Box sx={{ border: '1px solid #e0e0e0', borderRadius: 1, p: 2, bgcolor: '#f9f9f9' }}>
+                  <Typography variant="subtitle2" sx={{ mb: 1, display: 'flex', alignItems: 'center' }}>
+                    <AttachMoney sx={{ mr: 1, color: 'primary.main' }} />
+                    Total Amount
+                  </Typography>
+                  
+                  <Typography variant="h5" sx={{ fontWeight: 'bold', color: 'primary.main' }}>
+                    {formatCurrency(formData.totalAmount)}
+                  </Typography>
+                  
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+                    Automatically calculated based on product price and quantity
+                  </Typography>
+                </Box>
+              </Grid>
             </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Quantity"
-                name="quantity"
-                type="number"
-                inputProps={{ min: '1', step: '1' }}
-                value={formData.quantity}
-                onChange={handleChange}
-                error={!!errors.quantity}
-                helperText={errors.quantity}
-                disabled={loading}
-                required
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Sale Date"
-                name="saleDate"
-                type="date"
-                value={formData.saleDate}
-                onChange={handleChange}
-                error={!!errors.saleDate}
-                helperText={errors.saleDate}
-                disabled={loading}
-                InputLabelProps={{ shrink: true }}
-                required
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                label="Total Amount (u00a3)"
-                name="totalAmount"
-                type="number"
-                inputProps={{ step: '0.01', min: '0' }}
-                value={formData.totalAmount}
-                disabled={true} // Auto-calculated, so disabled
-                helperText="Automatically calculated based on product price and quantity"
-              />
-            </Grid>
-          </Grid>
-        </form>
+          </Paper>
+        </Box>
       </DialogContent>
-      <DialogActions>
-        <Button onClick={() => onClose(false)} disabled={loading}>
+
+      <Divider />
+      
+      <DialogActions sx={{ px: 3, py: 2, justifyContent: 'space-between' }}>
+        <Button 
+          onClick={() => onClose(false)} 
+          disabled={loading}
+          startIcon={<Cancel />}
+          variant="outlined"
+        >
           Cancel
         </Button>
         <Button 
@@ -253,6 +324,8 @@ const SaleModal = ({ open, onClose, sale, customers, products }) => {
           variant="contained" 
           color="primary"
           disabled={loading}
+          startIcon={<Save />}
+          size="large"
         >
           {loading ? 'Saving...' : 'Save'}
         </Button>

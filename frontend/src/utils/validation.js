@@ -52,6 +52,10 @@ export const parseUKDate = (dateString) => {
  * @returns {string} - Formatted currency string
  */
 export const formatCurrency = (value) => {
+  // If value is null, undefined, not a number, or NaN, return '£0'
+  if (value === null || value === undefined || isNaN(value)) {
+    return '£0';
+  }
   return new Intl.NumberFormat('en-GB', {
     style: 'currency',
     currency: 'GBP',

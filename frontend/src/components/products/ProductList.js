@@ -83,13 +83,15 @@ const ProductList = () => {
 
   return (
     <>
-      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-        <Typography variant="h5">Products & Services</Typography>
+      <Box display="flex" flexDirection={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'stretch', sm: 'center' }} mb={2} gap={2}>
+        <Typography variant="h5" sx={{ mb: { xs: 1, sm: 0 } }}>Products & Services</Typography>
         <Button 
           variant="contained" 
           color="primary" 
           startIcon={<Add />}
           onClick={handleAddProduct}
+          size="large"
+          sx={{ alignSelf: { xs: 'flex-end', sm: 'center' } }}
         >
           Add Product/Service
         </Button>
@@ -98,45 +100,50 @@ const ProductList = () => {
       {products.length === 0 ? (
         <Typography>No products found. Add your first product to get started.</Typography>
       ) : (
-        <TableContainer component={Paper}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>Name</TableCell>
-                <TableCell>Description</TableCell>
-                <TableCell>Price</TableCell>
-                <TableCell>Type</TableCell>
-                <TableCell>Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {products.map((product) => (
-                <TableRow key={product.id}>
-                  <TableCell>{product.name}</TableCell>
-                  <TableCell>{product.description}</TableCell>
-                  <TableCell>{formatCurrency(product.price)}</TableCell>
-                  <TableCell>{product.type}</TableCell>
-                  <TableCell>
-                    <IconButton 
-                      color="primary" 
-                      onClick={() => handleEditProduct(product)}
-                      size="small"
-                    >
-                      <Edit />
-                    </IconButton>
-                    <IconButton 
-                      color="error" 
-                      onClick={() => handleDeleteProduct(product.id)}
-                      size="small"
-                    >
-                      <Delete />
-                    </IconButton>
-                  </TableCell>
+        <Box sx={{ width: '100%', overflowX: 'auto' }}>
+          <TableContainer component={Paper} sx={{ minWidth: 600, boxShadow: 3 }}>
+            <Table size="medium">
+              <TableHead>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Name</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Description</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Price</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Type</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Actions</TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+              </TableHead>
+              <TableBody>
+                {products.map((product) => (
+                  <TableRow key={product.id} hover sx={{ '&:last-child td': { borderBottom: 0 } }}>
+                    <TableCell sx={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>{product.name}</TableCell>
+                    <TableCell sx={{ whiteSpace: 'normal', wordBreak: 'break-word' }}>{product.description}</TableCell>
+                    <TableCell>{formatCurrency(product.price)}</TableCell>
+                    <TableCell>{product.type}</TableCell>
+                    <TableCell>
+                      <IconButton 
+                        color="primary" 
+                        onClick={() => handleEditProduct(product)}
+                        size="small"
+                        aria-label="Edit"
+                        sx={{ mr: 1 }}
+                      >
+                        <Edit />
+                      </IconButton>
+                      <IconButton 
+                        color="error" 
+                        onClick={() => handleDeleteProduct(product.id)}
+                        size="small"
+                        aria-label="Delete"
+                      >
+                        <Delete />
+                      </IconButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Box>
       )}
 
       <ProductModal 
